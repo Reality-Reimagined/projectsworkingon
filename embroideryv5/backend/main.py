@@ -1462,7 +1462,7 @@ async def download_file(filename: str):
         logging.error(f"Error serving file {filename}: {e}")
         raise HTTPException(status_code=500, detail="Error serving file")
 
-@app.get("/preview/{filename}", response_class=FileResponse)
+@app.get("/preview{filename}", response_class=FileResponse)
 async def preview_file(filename: str):
     """
     Endpoint to fetch the SVG representation of the uploaded file.
