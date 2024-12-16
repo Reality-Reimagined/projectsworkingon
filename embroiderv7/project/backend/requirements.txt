@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pyembroidery
+svgpathtools
+Pillow
+opencv-python-headless
+numpy
+aiofiles
+python-magic
