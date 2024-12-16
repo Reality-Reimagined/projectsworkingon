@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 
 # Create directories for uploads, processed images, and outputs
-RUN mkdir -p uploads processed outputs logs
+RUN mkdir -p uploads processed outputs download logs
 
 # Set permissions (optional, adjust as needed)
 RUN chmod -R 755 uploads processed outputs logs
