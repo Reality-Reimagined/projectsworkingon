@@ -12,7 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from pyembroidery import EmbPattern, EmbStitch, write_dst
+# from pyembroidery import EmbPattern, EmbStitch, write_dst
+from pyembroidery import *
 from svgpathtools import svg2paths, Path as SvgPath, Line
 from PIL import Image, ImageFilter
 import cv2
