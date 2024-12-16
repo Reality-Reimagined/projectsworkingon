@@ -837,8 +837,7 @@ def simplify_paths(paths, tolerance=2.0):
 #         logging.error(f"Error in generate_stitches: {e}")
 #         raise e
 
-from pyembroidery import EmbPattern, EmbCommand  # Explicitly import EmbCommand
-
+from pyembroidery import EmbPattern # Explicitly import EmbCommand
 def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
     """
     Convert SVG paths to embroidery stitches based on user-defined settings.
@@ -857,13 +856,38 @@ def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
                 pattern.add_stitch_absolute(start.real, start.imag)
                 pattern.add_stitch_absolute(end.real, end.imag)
 
-        pattern.add_command(EmbCommand.END)  # End of pattern
+        pattern.add_stitch_none()  # End of pattern
 
         logging.info(f"Stitches generated from {svg_path}")
         return pattern
     except Exception as e:
         logging.error(f"Error in generate_stitches: {e}")
         raise e
+# def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
+#     """
+#     Convert SVG paths to embroidery stitches based on user-defined settings.
+#     """
+#     try:
+#         paths, attributes = svg2paths(str(svg_path))
+#         simplified_paths = simplify_paths(paths, tolerance=settings.get("stitch_density", 2.0))
+
+#         pattern = EmbPattern()
+#         for path in simplified_paths:
+#             for segment in path:
+#                 start = segment.start
+#                 end = segment.end
+#                 stitch_type = settings.get("stitch_type", "normal")
+#                 # Use correct method from pyembroidery
+#                 pattern.add_stitch_absolute(start.real, start.imag)
+#                 pattern.add_stitch_absolute(end.real, end.imag)
+
+#         pattern.add_command(EmbCommand.END)  # End of pattern
+
+#         logging.info(f"Stitches generated from {svg_path}")
+#         return pattern
+#     except Exception as e:
+#         logging.error(f"Error in generate_stitches: {e}")
+#         raise e
 
 def save_dst(pattern: EmbPattern, output_filename: str) -> Path:
     """
