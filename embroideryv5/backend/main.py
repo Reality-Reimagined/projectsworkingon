@@ -55,7 +55,8 @@ app = FastAPI(
 # Allow CORS for frontend interaction
 origins = [
     "http://localhost",
-    "http://localhost:3000",  # React default port
+    "http://localhost:3000",
+    "*", # React default port
     # Add other origins as needed
 ]
 
