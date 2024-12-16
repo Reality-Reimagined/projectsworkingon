@@ -840,56 +840,117 @@ async def digitize_image(client_id: str, image_path: Path, settings: Dict):
 # API Endpoints
 # ---------------------
 
+# @app.post("/upload/", response_model=UploadResponse)
+# async def upload_image(
+#     background_tasks: BackgroundTasks,
+#     file: UploadFile = File(...),
+#     stitch_density: Optional[int] = 2,
+#     stitch_type: Optional[str] = "normal",
+#     client_id: Optional[str] = None
+# ):
+#     """
+#     Endpoint to upload an image and receive the embroidered DST file.
+#     """
+#     if client_id is None:
+#         raise HTTPException(status_code=400, detail="Client ID is required for WebSocket communication.")
+
+#     # Validate file type
+#     if file.content_type not in ["image/png", "image/jpeg"]:
+#         raise HTTPException(status_code=400, detail="Invalid file type. Only PNG and JPEG are supported.")
+
+#     # Limit file size (e.g., 10 MB)
+#     max_file_size = 10 * 1024 * 1024  # 10 MB
+#     contents = await file.read()
+#     if len(contents) > max_file_size:
+#         raise HTTPException(status_code=400, detail="File too large. Max size is 10MB.")
+#     await file.seek(0)  # Reset file pointer
+
+#     # Generate a unique filename
+#     unique_filename = get_unique_filename(file.filename)
+#     upload_path = UPLOAD_DIR / unique_filename
+
+#     # Save the uploaded file
+#     with open(upload_path, "wb") as buffer:
+#         shutil.copyfileobj(file.file, buffer)
+
+#     # Prepare settings
+#     settings = {
+#         "stitch_density": stitch_density,
+#         "stitch_type": stitch_type
+#     }
+
+#     # Start digitization in the background
+#     background_tasks.add_task(digitize_image, client_id, upload_path, settings)
+
+#     # Generate download URL
+#     download_url = f"/download/{unique_filename.split('.')[0]}.dst"
+
+#     return UploadResponse(
+#         filename=unique_filename.split('.')[0] + ".dst",
+#         download_url=download_url,
+#         message="Embroidery file is being created. Check updates via WebSocket."
+#     )
+
 @app.post("/upload/", response_model=UploadResponse)
 async def upload_image(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    stitch_density: Optional[int] = 2,
-    stitch_type: Optional[str] = "normal",
-    client_id: Optional[str] = None
+    stitch_density: Optional[int] = Form(2),
+    stitch_type: Optional[str] = Form("normal"),
+    client_id: Optional[str] = Form(None)
 ):
     """
     Endpoint to upload an image and receive the embroidered DST file.
     """
+    # Log the received parameters
+    logging.info(f"Received upload request - client_id: {client_id}, stitch_density: {stitch_density}, stitch_type: {stitch_type}")
+    
     if client_id is None:
         raise HTTPException(status_code=400, detail="Client ID is required for WebSocket communication.")
 
-    # Validate file type
-    if file.content_type not in ["image/png", "image/jpeg"]:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only PNG and JPEG are supported.")
+    try:
+        # Validate file type
+        if file.content_type not in ["image/png", "image/jpeg", "image/jpg"]:
+            raise HTTPException(status_code=400, detail="Invalid file type. Only PNG and JPEG are supported.")
 
-    # Limit file size (e.g., 10 MB)
-    max_file_size = 10 * 1024 * 1024  # 10 MB
-    contents = await file.read()
-    if len(contents) > max_file_size:
-        raise HTTPException(status_code=400, detail="File too large. Max size is 10MB.")
-    await file.seek(0)  # Reset file pointer
+        # Limit file size (e.g., 10 MB)
+        max_file_size = 10 * 1024 * 1024  # 10 MB
+        contents = await file.read()
+        if len(contents) > max_file_size:
+            raise HTTPException(status_code=400, detail="File too large. Max size is 10MB.")
+        await file.seek(0)  # Reset file pointer
 
-    # Generate a unique filename
-    unique_filename = get_unique_filename(file.filename)
-    upload_path = UPLOAD_DIR / unique_filename
+        # Generate a unique filename
+        unique_filename = get_unique_filename(file.filename)
+        upload_path = UPLOAD_DIR / unique_filename
 
-    # Save the uploaded file
-    with open(upload_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        # Save the uploaded file
+        with open(upload_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    # Prepare settings
-    settings = {
-        "stitch_density": stitch_density,
-        "stitch_type": stitch_type
-    }
+        # Prepare settings
+        settings = {
+            "stitch_density": int(stitch_density),
+            "stitch_type": stitch_type
+        }
 
-    # Start digitization in the background
-    background_tasks.add_task(digitize_image, client_id, upload_path, settings)
+        logging.info(f"File saved to {upload_path}, starting digitization with settings: {settings}")
 
-    # Generate download URL
-    download_url = f"/download/{unique_filename.split('.')[0]}.dst"
+        # Start digitization in the background
+        background_tasks.add_task(digitize_image, client_id, upload_path, settings)
 
-    return UploadResponse(
-        filename=unique_filename.split('.')[0] + ".dst",
-        download_url=download_url,
-        message="Embroidery file is being created. Check updates via WebSocket."
-    )
+        # Generate download URL
+        download_url = f"/download/{unique_filename.split('.')[0]}.dst"
+
+        return UploadResponse(
+            filename=unique_filename.split('.')[0] + ".dst",
+            download_url=download_url,
+            message="Embroidery file is being created. Check updates via WebSocket."
+        )
+
+    except Exception as e:
+        logging.error(f"Error in upload_image: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/download/{filename}", response_class=FileResponse)
 async def download_file(filename: str):
