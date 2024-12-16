@@ -14,7 +14,8 @@ import cv2
 import numpy as np
 from PIL import Image, ImageFilter
 
-from pyembroidery import *
+# from pyembroidery import *
+import pyembroidery 
 from svgpathtools import svg2paths, Path as SvgPath, Line
 
 from fastapi import (
