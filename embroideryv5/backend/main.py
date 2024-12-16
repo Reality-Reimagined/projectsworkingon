@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageFilter
 
-import pyembroidery
+from pyembroidery import *
 from svgpathtools import svg2paths, Path as SvgPath, Line
 
 from fastapi import (
@@ -33,6 +33,7 @@ from fastapi.websockets import WebSocketState
 from pydantic import BaseModel, Field
 
 import magic  # Ensure python-magic is installed
+
 
 # ---------------------
 # Configuration and Path Setup
