@@ -1462,6 +1462,33 @@ async def download_file(filename: str):
         logging.error(f"Error serving file {filename}: {e}")
         raise HTTPException(status_code=500, detail="Error serving file")
 
+@app.get("/preview/{filename}", response_class=FileResponse)
+async def preview_file(filename: str):
+    """
+    Endpoint to fetch the SVG representation of the uploaded file.
+    """
+    # Ensure directories exist
+    ensure_directories()
+
+    # Define file path
+    svg_file_path = PROCESSED_DIR / f"{filename}.svg"
+
+    # Check if the SVG file exists
+    if not svg_file_path.exists():
+        logging.error(f"SVG file not found: {svg_file_path}")
+        raise HTTPException(status_code=404, detail="SVG file not found.")
+
+    try:
+        return FileResponse(
+            path=str(svg_file_path),
+            media_type='image/svg+xml',
+            filename=f"{filename}.svg"
+        )
+    except Exception as e:
+        logging.error(f"Error serving SVG file {filename}: {e}")
+        raise HTTPException(status_code=500, detail="Error serving SVG file")
+
+
 # @app.post("/upload/", response_model=UploadResponse)
 # async def upload_image(
 #     background_tasks: BackgroundTasks,
