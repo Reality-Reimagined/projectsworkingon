@@ -830,7 +830,7 @@ def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
                 pattern.add_stitch_absolute(end.real, end.imag)
 
         # pattern.add_stitch_none()  # End of pattern
-        pattern.add_command(STITCH_COMMAND_END)  # End of pattern
+        pattern.add_command(COMMAND_END)  # End of pattern
         logging.info(f"Stitches generated from {svg_path}")
         return pattern
     except Exception as e:
