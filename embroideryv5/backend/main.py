@@ -837,28 +837,75 @@ def simplify_paths(paths, tolerance=2.0):
 #         logging.error(f"Error in generate_stitches: {e}")
 #         raise e
 
-from pyembroidery import EmbPattern # Explicitly import EmbCommand
+# from pyembroidery import EmbPattern # Explicitly import EmbCommand
+# def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
+#     """
+#     Convert SVG paths to embroidery stitches based on user-defined settings.
+#     """
+#     try:
+#         paths, attributes = svg2paths(str(svg_path))
+#         simplified_paths = simplify_paths(paths, tolerance=settings.get("stitch_density", 2.0))
+
+#         pattern = EmbPattern()
+#         for path in simplified_paths:
+#             for segment in path:
+#                 start = segment.start
+#                 end = segment.end
+#                 stitch_type = settings.get("stitch_type", "normal")
+#                 # Use correct method from pyembroidery
+#                 pattern.add_stitch_absolute(start.real, start.imag)
+#                 pattern.add_stitch_absolute(end.real, end.imag)
+
+#         pattern.add_stitch_none()  # End of pattern
+
+#         logging.info(f"Stitches generated from {svg_path}")
+#         return pattern
+#     except Exception as e:
+#         logging.error(f"Error in generate_stitches: {e}")
+#         raise e
+
 def generate_stitches(svg_path: Path, settings: Dict) -> EmbPattern:
     """
     Convert SVG paths to embroidery stitches based on user-defined settings.
+    
+    Args:
+        svg_path (Path): Path to the SVG file.
+        settings (Dict): Dictionary containing settings like stitch_density and stitch_type.
+    
+    Returns:
+        EmbPattern: The generated embroidery pattern.
     """
     try:
+        # Parse SVG paths
         paths, attributes = svg2paths(str(svg_path))
-        simplified_paths = simplify_paths(paths, tolerance=settings.get("stitch_density", 2.0))
+        logging.debug(f"Parsed {len(paths)} paths from {svg_path}")
 
+        # Simplify paths based on stitch density
+        tolerance = settings.get("stitch_density", 2.0)
+        simplified_paths = simplify_paths(paths, tolerance=tolerance)
+        logging.debug(f"Simplified paths with tolerance {tolerance}")
+
+        # Create a new embroidery pattern
         pattern = EmbPattern()
+
+        # Convert SVG paths to embroidery stitches
         for path in simplified_paths:
             for segment in path:
                 start = segment.start
                 end = segment.end
                 stitch_type = settings.get("stitch_type", "normal")
-                # Use correct method from pyembroidery
-                pattern.add_stitch_absolute(start.real, start.imag)
-                pattern.add_stitch_absolute(end.real, end.imag)
 
-        pattern.add_stitch_none()  # End of pattern
+                if stitch_type == "jump":
+                    # Use JUMP command for non-stitch movements
+                    pattern.add_stitch_absolute(JUMP, end.real, end.imag)
+                else:
+                    # Use STITCH command for regular stitching
+                    pattern.add_stitch_absolute(STITCH, end.real, end.imag)
 
-        logging.info(f"Stitches generated from {svg_path}")
+        # Mark the end of the pattern
+        pattern.add_command(END)  # Correct command to end the pattern
+
+        logging.info(f"Stitches successfully generated from {svg_path}")
         return pattern
     except Exception as e:
         logging.error(f"Error in generate_stitches: {e}")
